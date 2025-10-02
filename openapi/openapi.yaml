@@ -1,0 +1,89 @@
+openapi: 3.0.3
+info:
+  title: Golden Fish Backend API
+  version: 0.1.0
+servers:
+  - url: http://localhost:8000
+paths:
+  /api/session:
+    post:
+      summary: Create session
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id: { type: string }
+      responses:
+        '200': { description: ok }
+  /api/session/{session_id}/question:
+    get:
+      summary: Get next question
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: ok }
+  /api/session/{session_id}/audio:
+    post:
+      summary: Upload audio
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                question_index: { type: integer }
+                audio: { type: string, format: binary }
+      responses:
+        '200': { description: ok }
+  /api/session/{session_id}/end_answer:
+    post:
+      summary: Mark end of answer
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question_index: { type: integer }
+      responses:
+        '200': { description: ok }
+  /api/session/{session_id}/results:
+    get:
+      summary: Get session summary
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: ok }
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+

@@ -1,0 +1,50 @@
+# Environment files
+.env.local
+.env.*.local
+.env
+
+# Dependencies
+node_modules
+.pnpm-debug.log*
+
+# Build outputs
+.next
+dist
+out
+
+# Local development
+*.log
+.DS_Store
+Thumbs.db
+
+# Audio files and recordings (will use Vercel Blob instead)
+recordings/
+records/
+uploads/
+audio-files/
+temp/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache
+.turbo
+.cache
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+.nyc_output
+
+# Misc
+*.tsbuildinfo
