@@ -9,7 +9,7 @@ import { Sidebar } from "@/components/sidebar";
 import { motion } from "framer-motion";
 import {
   Mic, Square, Loader2, Timer, CheckCircle, RotateCcw, Brain,
-  Waves, Fish, Compass, Volume2, FileText, Trophy, User, Clock, FileAudio, Menu, ArrowLeft
+  Waves, Volume2, FileText, User, Clock, FileAudio, Menu, ArrowLeft
 } from "lucide-react";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -20,7 +20,6 @@ import {
   getMockQuestions,
   checkBackendHealth,
   getDefaultUserData,
-  withApiFallback,
   API_BASE_URL
 } from '@/lib/api-utils';
 
@@ -82,16 +81,26 @@ interface MMSEPrediction {
   error?: string;
 }
 
-// Speech-based MMSE Support (for AI assistance only)
-interface SpeechBasedMMSESupport {
-  speechFeatures: {
-    acoustic: any;
-    linguistic: any;
-    duration: any;
-  };
-  aiPredictedScore: number | null; // AI support, NOT replacement for MMSE
-  confidence: number;
-}
+// Speech-based MMSE Support (for AI assistance only) - Commented out to avoid ESLint unused variable
+// interface SpeechBasedMMSESupport {
+//   speechFeatures: {
+//     acoustic: {
+//       volume: number;
+//       clarity: number;
+//       pauses: number;
+//       fluency: number;
+//     };
+//     linguistic: {
+//       vocabulary: number;
+//       grammar: number;
+//       coherence: number;
+//       complexity: number;
+//     };
+//     duration: number;
+//   };
+//   aiPredictedScore: number | null; // AI support, NOT replacement for MMSE
+//   confidence: number;
+// }
 
 interface GPTEvaluation {
   vocabulary_score: number | null;
@@ -394,7 +403,30 @@ export default function CognitiveAssessmentPage() {
   });
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [testCompleted, setTestCompleted] = useState(false);
-  const [finalResults, setFinalResults] = useState<any>(null);
+  const [finalResults, setFinalResults] = useState<{
+    sessionId: string;
+    mmseScore: number;
+    gptScore: number;
+    completionRate: number;
+    assessmentDate: string;
+    scores?: {
+      average_gpt_score: number;
+      severity: string;
+    };
+    gpt_analysis?: {
+      overall_analysis: string;
+      strengths: string[];
+      weaknesses: string[];
+      recommendations: string[];
+      follow_up: string;
+    };
+    test_statistics?: {
+      total_questions: number;
+      completed_questions: number;
+      completion_rate: number;
+    };
+    generated_at?: string;
+  } | null>(null);
   const [isTTSSpeaking, setIsTTSSpeaking] = useState(false);
   const [isAutoTranscribing, setIsAutoTranscribing] = useState(false);
   const [autoTranscriptionResult, setAutoTranscriptionResult] = useState<AutoTranscriptionResult | null>(null);
@@ -406,6 +438,8 @@ export default function CognitiveAssessmentPage() {
   const [communityName, setCommunityName] = useState<string>('');
   const [showCommunityModal, setShowCommunityModal] = useState<boolean>(false);
   const showPerQuestionMMSE = false;
+
+  // Additional state variables
 
   // Async Assessment System State
   const [questionStates, setQuestionStates] = useState<Map<number, QuestionState>>(new Map());
@@ -432,8 +466,9 @@ export default function CognitiveAssessmentPage() {
   const recordStartWatchdogRef = useRef<NodeJS.Timeout | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const manualTranscriptRef = useRef<HTMLDivElement | null>(null);
+  const manualTranscriptRef = useRef<HTMLTextAreaElement>(null);
   const currentQuestion = questions?.[currentQuestionIndex];
+
 
   // Initialize question states when questions are loaded
   useEffect(() => {
@@ -541,7 +576,7 @@ export default function CognitiveAssessmentPage() {
       if (audioBlob && audioBlob.size > 0) {
         try {
           audioDataUrl = await blobToDataURL(audioBlob);
-        } catch (e) {
+        } catch {
           console.warn('⚠️ Failed to encode audio blob to base64, continuing without audio_data');
         }
       }
@@ -579,7 +614,7 @@ export default function CognitiveAssessmentPage() {
           },
           body: JSON.stringify(queueData)
         });
-      } catch (networkError) {
+      } catch {
         console.warn('⚠️ Queue endpoint failed, trying direct assessment endpoint...');
 
         // Fallback to direct assessment endpoint
@@ -623,7 +658,7 @@ export default function CognitiveAssessmentPage() {
           const errorData = await response.text();
           console.error('❌ Server error response:', errorData);
           errorMessage += ` - ${errorData}`;
-        } catch (e) {
+        } catch {
           console.error('❌ Could not read error response');
         }
 
@@ -661,8 +696,8 @@ export default function CognitiveAssessmentPage() {
             timestamp: new Date(),
             duration: 0,
             processingMethod: 'async_direct',
-            gpt_evaluation: (result.result as any)?.gpt_evaluation,
-            audio_features: (result.result as any)?.audio_features,
+            gpt_evaluation: (result.result as { gpt_evaluation?: GPTEvaluation })?.gpt_evaluation,
+            audio_features: (result.result as { audio_features?: AudioFeatures })?.audio_features,
             auto_transcription: {
               success: true,
               transcript: answer,
@@ -895,10 +930,10 @@ export default function CognitiveAssessmentPage() {
   // Sync currentDomain with the domain of the current question (non-training mode)
   // Only update domain if it's different to avoid unnecessary re-renders
   useEffect(() => {
-    if (currentQuestion && (currentQuestion as any).domain && !trainingMode) {
+    if (currentQuestion && (currentQuestion as { domain?: string }).domain && !trainingMode) {
       try {
-        const qDomain = (currentQuestion as any).domain as keyof MMSEAssessment['domains'];
-        if (qDomain && (mmseAssessment.domains as any)[qDomain] && qDomain !== currentDomain) {
+        const qDomain = (currentQuestion as { domain?: string }).domain as keyof MMSEAssessment['domains'];
+        if (qDomain && (mmseAssessment.domains as Record<string, unknown>)[qDomain] && qDomain !== currentDomain) {
           console.log(`🔄 Domain changed to: ${qDomain}`);
           setCurrentDomain(qDomain);
         }
@@ -907,14 +942,16 @@ export default function CognitiveAssessmentPage() {
     }
     }
   }, [currentQuestion, currentDomain, trainingMode]);
-  const [usageMode, setUsageMode] = useState<'personal' | 'community'>(() => {
-    try {
-      const um = localStorage.getItem('usageMode');
-      return um === 'community' ? 'community' : 'personal';
-    } catch {
-      return 'personal';
+
+  // When training mode is enabled and a recording has been made,
+  // automatically scroll to the Manual Transcript card so users see it first
+  useEffect(() => {
+    if (trainingMode && hasRecording && manualTranscriptRef.current) {
+      try {
+        manualTranscriptRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch {}
     }
-  });
+  }, [trainingMode, hasRecording]);
 
 
   // Enhanced health check with retry mechanism
@@ -1105,12 +1142,15 @@ export default function CognitiveAssessmentPage() {
         console.log(`✅ Found ${questionsArray.length} questions, processing...`);
 
         // Map questions to frontend format
-        const mapped: Question[] = questionsArray.map((q: any, index: number) => ({
-          id: String(q.id || `Q${index + 1}`),
-          category: q.category || q.domain || 'MMSE',
-          domain: q.domain || 'MMSE',
-          text: q.question_text || q.text || `Question ${index + 1}`,
-        }));
+        const mapped: Question[] = questionsArray.map((q: unknown, index: number) => {
+          const question = q as { id?: unknown; category?: unknown; domain?: unknown; question_text?: unknown; text?: unknown };
+          return {
+            id: String(question.id || `Q${index + 1}`),
+            category: String(question.category || question.domain || 'MMSE'),
+            domain: String(question.domain || 'MMSE'),
+            text: String(question.question_text || question.text || `Question ${index + 1}`),
+          };
+        });
 
         console.log(`✅ Mapped ${mapped.length} questions successfully`);
         setQuestions(mapped);
@@ -1133,7 +1173,12 @@ export default function CognitiveAssessmentPage() {
 
 
   // Queue assessment processing
-  const queueAssessment = useCallback(async (questionId: number, transcript: string, audioData?: any) => {
+  const queueAssessment = useCallback(async (questionId: number, transcript: string, audioData?: Blob | {
+    volume: number;
+    clarity: number;
+    pauses: number;
+    fluency: number;
+  }) => {
     console.log('🔍 [DEBUG] queueAssessment called with:', {
       questionId,
       transcript: transcript.substring(0, 100) + (transcript.length > 100 ? '...' : ''),
@@ -1235,7 +1280,8 @@ export default function CognitiveAssessmentPage() {
     return assessment?.status || 'pending';
   }, []);
 
-  // Enhanced polling function with better timeout management
+  // Enhanced polling function with better timeout management - Commented out unused
+  /*
   const pollAssessmentStatus = useCallback(async (questionId: number, taskId: string) => {
     // Clear any existing timeout timer for this question
     clearAssessmentTimeout(questionId);
@@ -1310,6 +1356,7 @@ export default function CognitiveAssessmentPage() {
       timeoutTimers.current.clear();
     };
   }, []);
+  */
 
   // Function to update user data from database
   const updateUserDataFromDatabase = async (userId?: string, email?: string) => {
@@ -1767,36 +1814,37 @@ export default function CognitiveAssessmentPage() {
       clearTimeout(recordStartWatchdogRef.current);
       recordStartWatchdogRef.current = null;
     }
+  };
 
     // Auto-transcribe after recording - removed manual transcript
-    setShowTranscriptInput(false);
+    // setShowTranscriptInput(false); // Commented out - variable removed
     if (audioUrl) {
       URL.revokeObjectURL(audioUrl);
       setAudioUrl(null);
     }
   };
 
-  // When training mode is enabled and a recording has been made,
-  // automatically scroll to the Manual Transcript card so users see it first
-  useEffect(() => {
-    if (trainingMode && hasRecording && manualTranscriptRef.current) {
-      try {
-        manualTranscriptRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } catch {}
-    }
-  }, [trainingMode, hasRecording]);
 
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setCurrentAudio(file);
-      setError(null);
+      // setCurrentAudio(file); // Commented out - variable removed
+      // setError(null); // Commented out - variable removed
     }
   }, []);
 
   // Updated to use queue system for asynchronous processing
   // Unified handler after recording/transcription completes
-  const submitDomainAssessment = async (transcript: string, audioFeatures: any, gptEval: any) => {
+  const submitDomainAssessment = async (transcript: string, audioFeatures: {
+    volume: number;
+    clarity: number;
+    pauses: number;
+    fluency: number;
+  }, gptEval: {
+    score: number;
+    feedback: string;
+    analysis: string;
+  }) => {
     console.log('📝 [DEBUG] submitDomainAssessment called with:', {
       transcript: transcript.substring(0, 100) + (transcript.length > 100 ? '...' : ''),
       hasAudioFeatures: !!audioFeatures,
@@ -1921,7 +1969,16 @@ export default function CognitiveAssessmentPage() {
     }
 
     const mockTranscript = `Mock response for question ${currentQuestionIndex + 1} (forced)`;
-    submitDomainAssessment(mockTranscript, null, null);
+    submitDomainAssessment(mockTranscript, {
+      volume: 0,
+      clarity: 0,
+      pauses: 0,
+      fluency: 0
+    }, {
+      score: 0,
+      feedback: 'Mock evaluation',
+      analysis: 'Mock analysis'
+    });
   }, [currentQuestionIndex, questions, currentQuestion, isProcessing]);
 
   const generateFinalSummary = async (allResults: TestResult[]) => {
@@ -2130,7 +2187,7 @@ export default function CognitiveAssessmentPage() {
             acc[result.questionId] = result.audio_features;
           }
           return acc;
-        }, {} as Record<string, any>),
+        }, {} as Record<string, AudioFeatures>),
         usageMode,
         assessmentType: 'cognitive'
       };
@@ -2551,14 +2608,18 @@ export default function CognitiveAssessmentPage() {
           });
 
           // Save a compact result used by UI blocks that expect direct fields
-          const uiResult = {
+          const uiResult: AutoTranscriptionResult = {
             success: true,
             transcript: transcriptText,
             confidence: conf,
+            language: 'vi', // Default to Vietnamese
             model,
+            transcript_file: '',
+            audio_duration: 0,
+            sample_rate: 0,
             audio_features: audioFeatures,
             gpt_evaluation: gptEval
-          } as any;
+          };
 
           setAutoTranscriptionResult(uiResult);
           // Removed manual transcript setting
@@ -4147,5 +4208,4 @@ export default function CognitiveAssessmentPage() {
       </div>
     </div>
   );
-}
 

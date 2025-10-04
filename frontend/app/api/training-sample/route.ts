@@ -24,7 +24,8 @@ export async function POST(req: Request) {
     const db = drizzle(sql)
 
     await db.insert(trainingSamples).values({
-      sessionId: Number.isNaN(parseInt(sessionId, 10)) ? 0 : parseInt(sessionId, 10),
+      sessionId: sessionId,
+      userId: userEmail, // Use email as userId since that's what's available
       userEmail,
       userName,
       questionId: Number.isNaN(parseInt(questionId, 10)) ? 0 : parseInt(questionId, 10),

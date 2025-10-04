@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
-import { desc, eq, sql, and } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { cognitiveAssessmentResults } from '@/db/schema';
 
 export async function GET(request: NextRequest) {
@@ -26,31 +26,35 @@ export async function GET(request: NextRequest) {
       const db = drizzleSQLite(sqlite);
 
       try {
-        // Build conditions first to avoid chaining multiple .where() (which narrows types)
-        const conditions: any[] = [];
-        if (sessionId) conditions.push(eq(cognitiveAssessmentResults.sessionId, sessionId));
-        if (userId) conditions.push(eq(cognitiveAssessmentResults.userId, userId));
-        if (usageMode) conditions.push(eq(cognitiveAssessmentResults.usageMode, usageMode));
+        // For SQLite, build query with proper where conditions using any type to avoid Drizzle type issues
+        let query: any = db.select().from(cognitiveAssessmentResults);
 
-        let query = db.select().from(cognitiveAssessmentResults);
-        if (conditions.length > 0) {
-          query = query.where(and(...conditions));
+        // Apply filters one by one to avoid type narrowing issues
+        if (sessionId) {
+          query = query.where(eq(cognitiveAssessmentResults.sessionId, sessionId));
         }
-        query = query.orderBy(desc(cognitiveAssessmentResults.createdAt));
+        if (userId) {
+          query = query.where(eq(cognitiveAssessmentResults.userId, userId));
+        }
+        if (usageMode) {
+          query = query.where(eq(cognitiveAssessmentResults.usageMode, usageMode));
+        }
 
+        query = query.orderBy(desc(cognitiveAssessmentResults.createdAt));
         results = await query.limit(limit);
 
         // Process results to parse userInfo JSON
-        results = results.map(result => {
+        results = results.map((result: unknown) => {
+          const data = result as { userInfo?: unknown; [key: string]: unknown };
           let userInfo = { name: 'N/A', email: 'N/A', age: 'N/A', gender: 'N/A' };
 
-          if (result.userInfo) {
+          if (data.userInfo) {
             try {
               // Parse JSON string from database
-              if (typeof result.userInfo === 'string') {
-                userInfo = { ...userInfo, ...JSON.parse(result.userInfo) };
-              } else if (typeof result.userInfo === 'object') {
-                userInfo = { ...userInfo, ...result.userInfo };
+              if (typeof data.userInfo === 'string') {
+                userInfo = { ...userInfo, ...JSON.parse(data.userInfo) };
+              } else if (typeof data.userInfo === 'object') {
+                userInfo = { ...userInfo, ...(data.userInfo as object) };
               }
             } catch (e) {
               console.warn('Failed to parse userInfo JSON:', e);
@@ -58,7 +62,7 @@ export async function GET(request: NextRequest) {
           }
 
           return {
-            ...result,
+            ...data,
             userInfo
           };
         });
@@ -77,31 +81,36 @@ export async function GET(request: NextRequest) {
       const { drizzle } = await import('drizzle-orm/neon-http');
       const db = drizzle(neonClient);
 
-      // Build conditions first to avoid chaining multiple .where() (which narrows types)
-      const conditions: any[] = [];
-      if (sessionId) conditions.push(eq(cognitiveAssessmentResults.sessionId, sessionId));
-      if (userId) conditions.push(eq(cognitiveAssessmentResults.userId, userId));
-      if (usageMode) conditions.push(eq(cognitiveAssessmentResults.usageMode, usageMode));
+      // For PostgreSQL, build query with proper where conditions
+      let query: any = db.select().from(cognitiveAssessmentResults);
 
-      let query = db.select().from(cognitiveAssessmentResults);
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
+      // Apply filters one by one to avoid type narrowing issues
+      if (sessionId) {
+        query = query.where(eq(cognitiveAssessmentResults.sessionId, sessionId));
       }
+      if (userId) {
+        query = query.where(eq(cognitiveAssessmentResults.userId, userId));
+      }
+      if (usageMode) {
+        query = query.where(eq(cognitiveAssessmentResults.usageMode, usageMode));
+      }
+
       query = query.orderBy(desc(cognitiveAssessmentResults.createdAt));
 
       results = await query.limit(limit);
 
       // Process results to parse userInfo JSON
-      results = results.map(result => {
+      results = results.map((result: unknown) => {
+        const data = result as { userInfo?: unknown; [key: string]: unknown };
         let userInfo = { name: 'N/A', email: 'N/A', age: 'N/A', gender: 'N/A' };
 
-        if (result.userInfo) {
+        if (data.userInfo) {
           try {
             // Parse JSON from database
-            if (typeof result.userInfo === 'string') {
-              userInfo = { ...userInfo, ...JSON.parse(result.userInfo) };
-            } else if (typeof result.userInfo === 'object') {
-              userInfo = { ...userInfo, ...result.userInfo };
+            if (typeof data.userInfo === 'string') {
+              userInfo = { ...userInfo, ...JSON.parse(data.userInfo) };
+            } else if (typeof data.userInfo === 'object') {
+              userInfo = { ...userInfo, ...(data.userInfo as object) };
             }
           } catch (e) {
             console.warn('Failed to parse userInfo JSON:', e);
@@ -109,7 +118,7 @@ export async function GET(request: NextRequest) {
         }
 
         return {
-          ...result,
+          ...data,
           userInfo
         };
       });
@@ -119,11 +128,18 @@ export async function GET(request: NextRequest) {
 
     // Log first result for debugging
     if (results && results.length > 0) {
+      const firstResult = results[0] as {
+        sessionId?: string;
+        userId?: string;
+        finalMmseScore?: number;
+        createdAt?: string;
+        [key: string]: unknown;
+      };
       console.log('📋 First result sample:', {
-        sessionId: results[0].sessionId,
-        userId: results[0].userId,
-        finalMmseScore: results[0].finalMmseScore,
-        createdAt: results[0].createdAt
+        sessionId: firstResult.sessionId,
+        userId: firstResult.userId,
+        finalMmseScore: firstResult.finalMmseScore,
+        createdAt: firstResult.createdAt
       });
     }
 

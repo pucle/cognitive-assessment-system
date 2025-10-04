@@ -18,7 +18,13 @@ import {
 import { useState, useEffect } from "react";
 import { researchPapers, type ResearchPaper } from "@/lib/research-papers";
 
-type FilterType = 'all' | 'recent' | 'popular'
+type FilterType = 'all' | 'research' | 'technology'
+type UINewsPaper = ResearchPaper & { category?: string; relevance?: string; journal?: string }
+const filterOptions: { value: FilterType; label: string }[] = [
+  { value: 'all', label: 'Tất cả' },
+  { value: 'research', label: 'Nghiên cứu' },
+  { value: 'technology', label: 'Công nghệ' },
+]
 
 type LiveItem = {
   id: string;
@@ -33,22 +39,22 @@ type LiveItem = {
 export default function NewsResearch() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredPapers, setFilteredPapers] = useState<ResearchPaper[]>(researchPapers);
+  const [filteredPapers, setFilteredPapers] = useState<UINewsPaper[]>(researchPapers as UINewsPaper[]);
   const [filteredLiveItems, setFilteredLiveItems] = useState<LiveItem[]>([]);
   const [liveItems, setLiveItems] = useState<LiveItem[]>([]);
   const [isLoadingLive, setIsLoadingLive] = useState(false);
 
   useEffect(() => {
-    let filtered = researchPapers;
+    let filtered = researchPapers as UINewsPaper[];
 
     // Filter by category
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter((paper: ResearchPaper) => (paper as any).category === selectedCategory);
+      filtered = filtered.filter((paper: UINewsPaper) => paper.category === selectedCategory);
     }
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter((paper: ResearchPaper) =>
+      filtered = filtered.filter((paper: UINewsPaper) =>
         paper.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         paper.abstract.toLowerCase().includes(searchTerm.toLowerCase()) ||
         paper.authors.some((author: string) => author.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -169,12 +175,12 @@ export default function NewsResearch() {
               {/* Category Filters */}
               <div className="flex flex-wrap gap-2">
                 <Filter className="w-4 h-4 text-gray-400 mr-2 self-center" />
-                {([{ value: 'all', label: 'Tất cả' }, { value: 'research', label: 'Nghiên cứu' }, { value: 'technology', label: 'Công nghệ' }] as const).map((filter) => (
+                {filterOptions.map((filter: { value: FilterType; label: string }) => (
                   <Button
                     key={filter.value}
                     variant={selectedCategory === filter.value ? "default" : "secondaryOutline"}
                     size="sm"
-                    onClick={() => setSelectedCategory(filter.value as string)}
+                    onClick={() => setSelectedCategory(filter.value)}
                     className="text-xs"
                   >
                     {filter.label}
@@ -252,11 +258,11 @@ export default function NewsResearch() {
               >
                 <Card className="p-6 h-full hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-200">
                   <div className="flex items-start justify-between mb-4">
-                    <Badge className={getCategoryColor(paper.category)}>
-                      {filterOptions.find(f => f.value === paper.category)?.label}
+                    <Badge className={getCategoryColor(paper.category || 'research')}>
+                      {filterOptions.find((f: { value: FilterType; label: string }) => f.value === (paper.category as FilterType))?.label}
                     </Badge>
                     <div className="flex items-center">
-                      {getRelevanceIcon(paper.relevance)}
+                      {getRelevanceIcon(paper.relevance || 'low')}
                     </div>
                   </div>
 

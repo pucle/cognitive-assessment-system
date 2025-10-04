@@ -14,7 +14,14 @@ interface AssessmentCompletionProps {
 
 interface CompletionResult {
   redirect: string;
-  data?: any;
+  data?: {
+    sessionId: string;
+    mmseScore: number;
+    gptScore: number;
+    completionRate: number;
+    assessmentDate: string;
+    [key: string]: unknown;
+  };
   message?: string;
 }
 
