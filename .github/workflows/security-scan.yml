@@ -198,12 +198,12 @@ jobs:
           config-path: .gitleaks.toml
 
       # Alternative: Scan with TruffleHog
-      - name: Run TruffleHog
-        uses: trufflesecurity/trufflehog@main
+      - name: Run TruffleHog (CLI)
         continue-on-error: true
-        with:
-          path: ./
-          extra_args: --json --only-verified
+        run: |
+          python -m pip install --upgrade pip >/dev/null 2>&1 || true
+          pip install --quiet trufflehog
+          trufflehog --json --only-verified . || true
 
   # ================================
   # Infrastructure as Code Scan
