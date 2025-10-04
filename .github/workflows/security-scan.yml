@@ -272,6 +272,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [codeql, dependency-scan, container-scan, secrets-scan, iac-scan, license-check]
     if: always()
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:
       - name: Checkout code
@@ -352,10 +354,10 @@ jobs:
 
       # Send notification for failed scans
       - name: Notify on security failures
-        if: ${{ failure() && secrets.SLACK_WEBHOOK_URL != '' }}
+        if: ${{ failure() && env.SLACK_WEBHOOK_URL != '' }}
         uses: rtCamp/action-slack-notify@v2
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK: ${{ env.SLACK_WEBHOOK_URL }}
           SLACK_MESSAGE: 'Security vulnerabilities detected. Check the Security tab and artifacts.'
           SLACK_TITLE: 'Security Scan Failed'
 
