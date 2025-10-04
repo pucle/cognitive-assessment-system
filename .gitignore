@@ -177,6 +177,8 @@ plots/
 # Heroku
 .env.local
 .env.production
+.env.production.local
+.env.*.local
 
 # Testing
 test-results/
@@ -194,6 +196,10 @@ out/
 
 # Optional REPL history
 .node_repl_history
+
+# Sensitive keys/certs
+**/*.key
+**/*.pem
 
 # Output of 'npm pack'
 *.tgz
