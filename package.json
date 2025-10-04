@@ -1,4 +1,9 @@
 {
+  "name": "cognitive-assessment-root",
+  "private": true,
+  "scripts": {
+    "build": "echo 'No root build. Building frontend only' && cd frontend && npm ci && npm run build"
+  },
   "dependencies": {
     "@clerk/nextjs": "^6.31.10",
     "@types/react": "^18.3.24",
