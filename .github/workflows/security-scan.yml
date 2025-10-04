@@ -196,8 +196,8 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         continue-on-error: true
         with:
-          scan: repo
-          json: true
+          path: ./
+          extra_args: --json --only-verified
 
   # ================================
   # Infrastructure as Code Scan
