@@ -93,6 +93,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
+          command: test
           args: --severity-threshold=medium
 
       # Scan Python dependencies
@@ -188,17 +189,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: --no-git -v --redact || true
+          config-path: .gitleaks.toml
 
       # Alternative: Scan with TruffleHog
       - name: Run TruffleHog
         uses: trufflesecurity/trufflehog@main
         continue-on-error: true
         with:
-          path: ./
-          base: main
-          head: HEAD
-          extra_args: --debug --only-verified --json
+          scan: repo
+          json: true
 
   # ================================
   # Infrastructure as Code Scan
