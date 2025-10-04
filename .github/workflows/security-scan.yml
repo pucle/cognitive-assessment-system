@@ -101,7 +101,6 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: test
-          args: --severity-threshold=medium
 
       # Scan Python dependencies
       - name: Setup Python

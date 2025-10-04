@@ -91,10 +91,18 @@ jobs:
             echo "No lint script found, skipping"
           fi
 
-      - name: Run frontend type checking
+      - name: Run frontend type checking (if TypeScript present)
         run: |
-          cd frontend
-          npx tsc --noEmit
+          if [ -f frontend/tsconfig.json ]; then
+            # Prefer local Typescript binary; fallback to npx with frontend prefix
+            if npm --prefix frontend exec --yes tsc --version >/dev/null 2>&1; then
+              npm --prefix frontend exec --yes tsc --noEmit
+            else
+              npx --yes --prefix frontend tsc --noEmit
+            fi
+          else
+            echo "No tsconfig.json; skipping type check"
+          fi
 
       # Setup Python for backend testing
       - name: Setup Python
@@ -174,8 +182,6 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: --no-git -v --redact || true
 
   # ================================
   # Deploy Backend Job
