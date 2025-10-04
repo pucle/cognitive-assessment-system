@@ -16,6 +16,13 @@ on:
           - production
           - staging
 
+permissions:
+  contents: read
+  checks: write
+  deployments: write
+  id-token: write
+  statuses: write
+
 env:
   NODE_VERSION: '18'
   PYTHON_VERSION: '3.11'
@@ -53,7 +60,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: 'frontend/package-lock.json'
+          cache-dependency-path: |
+            frontend/package-lock.json
+            frontend/package.json
 
       - name: Install frontend dependencies
         run: |
@@ -76,7 +85,8 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-          cache-dependency-path: 'backend/requirements.txt'
+          cache-dependency-path: |
+            backend/requirements.txt
 
       - name: Install backend dependencies
         run: |
@@ -127,7 +137,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'

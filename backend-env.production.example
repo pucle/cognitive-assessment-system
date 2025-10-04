@@ -1,0 +1,112 @@
+# Backend Production Environment Variables
+# Copy this file to .env and fill in your actual values
+# NEVER commit .env to GitHub!
+
+# ========================================
+# FLASK APPLICATION (REQUIRED)
+# ========================================
+SECRET_KEY=your-32-character-random-secret-key-here-change-this
+PORT=8000
+HOST=0.0.0.0
+FLASK_ENV=production
+DEBUG=false
+
+# ========================================
+# DATABASE CONFIGURATION (REQUIRED)
+# ========================================
+DATABASE_URL=postgresql://username:password@ep-xyz.us-east-2.aws.neon.tech/dbname?sslmode=require
+
+# ========================================
+# AI SERVICES (REQUIRED for full functionality)
+# ========================================
+OPENAI_API_KEY=sk-proj-your_openai_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
+GOOGLE_API_KEY=your_gemini_api_key_here
+
+# ========================================
+# FILE STORAGE (REQUIRED)
+# ========================================
+BLOB_READ_WRITE_TOKEN=vercel_blob_your_token_here
+
+# ========================================
+# ASR CONFIGURATION
+# ========================================
+VI_ASR_MODEL=nguyenvulebinh/wav2vec2-large-vietnamese-250h
+ENABLE_PAID_TRANSCRIPTION=true
+TRANSCRIPTION_BUDGET_LIMIT=5.00
+
+# ========================================
+# CACHE CONFIGURATION
+# ========================================
+CACHE_DIR=/tmp/cognitive_cache
+CACHE_TTL=3600
+AUDIO_CACHE_SIZE=100
+TEXT_CACHE_SIZE=500
+
+# ========================================
+# FILE PATHS
+# ========================================
+UPLOAD_PATH=/tmp/uploads
+STORAGE_PATH=./storage
+RECORDINGS_PATH=./recordings
+MODEL_PATH=./models
+SVM_MODEL_PATH=./models/svm_model.pkl
+SCALER_PATH=./models/scaler.pkl
+
+# ========================================
+# SECURITY & CORS
+# ========================================
+ALLOWED_ORIGINS=https://your-frontend-app.vercel.app
+JWT_SECRET_KEY=your-jwt-secret-key-here
+
+# ========================================
+# OPTIONAL: EMAIL CONFIGURATION
+# ========================================
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+EMAIL_USER=noreply@yourapp.com
+
+# ========================================
+# OPTIONAL: MONITORING & LOGGING
+# ========================================
+LOG_LEVEL=WARNING
+LOG_FILE=./logs/backend.log
+SENTRY_DSN=https://your-sentry-dsn.ingest.sentry.io/project-id
+SENTRY_DEBUG=false
+
+# ========================================
+# OPTIONAL: ADVANCED FEATURES
+# ========================================
+ENABLE_ADVANCED_ANALYTICS=true
+ENABLE_REAL_TIME_PROCESSING=false
+ENABLE_MODEL_EXPLAINABILITY=true
+
+# ========================================
+# OPTIONAL: REDIS/CELERY (for background tasks)
+# ========================================
+REDIS_URL=redis://redis:6379/0
+CELERY_BROKER_URL=redis://redis:6379/0
+CELERY_RESULT_BACKEND=redis://redis:6379/0
+
+# ========================================
+# OPTIONAL: METRICS & MONITORING
+# ========================================
+ENABLE_METRICS=false
+METRICS_PORT=9090
+STATSD_HOST=localhost
+STATSD_PREFIX=cognitive_assessment
+HEALTH_CHECK_INTERVAL=30
+
+# ========================================
+# OPTIONAL: RATE LIMITING
+# ========================================
+# Not implemented yet, but planned for future
+
+# ========================================
+# DEVELOPMENT/DEBUG (should be false in production)
+# ========================================
+# These should remain false in production
+# DEBUG=false (already set above)
+# FLASK_ENV=production (already set above)
