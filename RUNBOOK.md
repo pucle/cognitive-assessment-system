@@ -234,9 +234,10 @@ npm run test-blob  # Create test script if needed
 vercel env ls | grep CLERK
 railway env | grep CLERK
 
-# 3. Test Clerk API
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-     https://api.clerk.com/v1/users
+# 3. Test Clerk API (use an environment variable; do not paste real tokens)
+# export CLERK_TEST_TOKEN=***
+curl -H "Authorization: Bearer $CLERK_TEST_TOKEN" \
+     https://api.clerk.com/v1/users || true
 ```
 
 ### **Performance Issues**

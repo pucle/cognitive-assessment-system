@@ -15,20 +15,36 @@ fi
 echo "🔗 Linking project..."
 railway link
 
-# Set environment variables
+# Set environment variables (no hardcoded secrets)
 echo "⚙️ Setting environment variables..."
 
 # Core Flask settings
 railway variables set FLASK_ENV=production
 railway variables set DEBUG=false
 
-# Database
-railway variables set DATABASE_URL="postgresql://username:password@hostname:5432/database_name"
+# Database (provide via prompt or paste; NEVER hardcode)
+read -p "Enter DATABASE_URL (from Neon): " DBURL
+railway variables set DATABASE_URL="$DBURL"
 
-# Secrets
-railway variables set SECRET_KEY="rl4rK0tuN9foit1847BPqNeCLRB7DnYkTGJ-fMf9uPM"
-railway variables set JWT_SECRET_KEY="uJ9meQ0d5KlHBh0fUaFKBVosScwgzc0w/AGg0UPrrMM="
-railway variables set API_TOKEN="fEiPT7rrs8zKnJQF-Ej-fVgTQHVfnC9fv4UI84fpvqE"
+# Secrets (generated securely at runtime)
+SECRET_KEY_GEN=$(python - <<'PY'
+import secrets
+print(secrets.token_urlsafe(32))
+PY
+)
+JWT_SECRET_KEY_GEN=$(python - <<'PY'
+import secrets
+print(secrets.token_urlsafe(32))
+PY
+)
+API_TOKEN_GEN=$(python - <<'PY'
+import secrets
+print(secrets.token_urlsafe(24))
+PY
+)
+railway variables set SECRET_KEY="$SECRET_KEY_GEN"
+railway variables set JWT_SECRET_KEY="$JWT_SECRET_KEY_GEN"
+railway variables set API_TOKEN="$API_TOKEN_GEN"
 
 # AI Services
 railway variables set OPENAI_API_KEY="your_openai_key_here"
