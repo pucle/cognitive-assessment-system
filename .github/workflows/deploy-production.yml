@@ -65,9 +65,6 @@ jobs:
         with:
           fetch-depth: 0
           submodules: false
-        with:
-          fetch-depth: 0
-          submodules: false
 
       # Setup Node.js for frontend testing
       - name: Setup Node.js
