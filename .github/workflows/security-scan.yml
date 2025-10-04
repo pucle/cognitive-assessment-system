@@ -87,6 +87,15 @@ jobs:
           cd frontend
           npm audit --audit-level=moderate || true
 
+      - name: Lint (if available)
+        run: |
+          cd frontend
+          if npm pkg get scripts.lint >/dev/null 2>&1; then
+            npm run lint || true
+          else
+            echo "No lint script found, skipping"
+          fi
+
       - name: Run Snyk for Node.js
         if: ${{ env.SNYK_TOKEN != '' }}
         uses: snyk/actions/node@master

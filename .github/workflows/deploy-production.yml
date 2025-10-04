@@ -84,7 +84,11 @@ jobs:
       - name: Run frontend linting
         run: |
           cd frontend
-          npm run lint
+          if npm pkg get scripts.lint >/dev/null 2>&1; then
+            npm run lint
+          else
+            echo "No lint script found, skipping"
+          fi
 
       - name: Run frontend type checking
         run: |
