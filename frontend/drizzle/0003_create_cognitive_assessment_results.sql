@@ -1,0 +1,26 @@
+-- Create cognitive_assessment_results table
+CREATE TABLE IF NOT EXISTS "cognitive_assessment_results" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"sessionId" text NOT NULL,
+	"userId" text,
+	"userInfo" jsonb,
+	"startedAt" timestamp with time zone,
+	"completedAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"totalQuestions" integer DEFAULT 0,
+	"answeredQuestions" integer DEFAULT 0,
+	"completionRate" real,
+	"memoryScore" real,
+	"cognitiveScore" real,
+	"finalMmseScore" integer,
+	"overallGptScore" real,
+	"questionResults" jsonb,
+	"audioFiles" jsonb,
+	"recordingsPath" text,
+	"cognitiveAnalysis" jsonb,
+	"audioFeatures" jsonb,
+	"status" text DEFAULT 'completed',
+	"usageMode" text DEFAULT 'personal',
+	"assessmentType" text DEFAULT 'cognitive',
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
+);

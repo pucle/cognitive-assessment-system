@@ -94,12 +94,8 @@ jobs:
       - name: Run frontend type checking (if TypeScript present)
         run: |
           if [ -f frontend/tsconfig.json ]; then
-            # Prefer local Typescript binary; fallback to npx with frontend prefix
-            if npm --prefix frontend exec --yes tsc --version >/dev/null 2>&1; then
-              npm --prefix frontend exec --yes tsc --noEmit
-            else
-              npx --yes --prefix frontend tsc --noEmit
-            fi
+            cd frontend
+            npm run typecheck
           else
             echo "No tsconfig.json; skipping type check"
           fi
@@ -198,6 +194,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          submodules: false
 
       # Deploy to Railway
       - name: Deploy to Railway
