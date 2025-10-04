@@ -26,8 +26,6 @@ permissions:
 env:
   NODE_VERSION: '18'
   PYTHON_VERSION: '3.11'
-  RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-  RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
   BACKEND_URL: ${{ secrets.BACKEND_URL }}
   FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
   RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
