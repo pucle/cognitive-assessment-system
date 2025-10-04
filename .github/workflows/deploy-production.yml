@@ -128,8 +128,8 @@ jobs:
       # Build checks
       - name: Build frontend
         run: |
-          cd frontend
-          npm run build
+          npm --prefix frontend ci
+          npm --prefix frontend run build
 
       - name: Build backend Docker image
         if: ${{ hashFiles('backend/Dockerfile') != '' }}

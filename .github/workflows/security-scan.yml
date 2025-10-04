@@ -79,20 +79,17 @@ jobs:
 
       - name: Install frontend dependencies
         run: |
-          cd frontend
-          npm ci
+          npm --prefix frontend ci
 
       - name: Run npm audit
         run: |
-          cd frontend
-          npm audit --audit-level=moderate || true
+          npm --prefix frontend audit --audit-level=moderate || true
 
       - name: Lint (if available)
         run: |
-          cd frontend
-          LINT_VAL=$(npm pkg get scripts.lint 2>/dev/null | tr -d ' \n"')
+          LINT_VAL=$(npm --prefix frontend pkg get scripts.lint 2>/dev/null | tr -d ' \n"')
           if [ -n "$LINT_VAL" ] && [ "$LINT_VAL" != "undefined" ]; then
-            npm run lint || true
+            npm --prefix frontend run lint || true
           else
             echo "No lint script found, skipping"
           fi
