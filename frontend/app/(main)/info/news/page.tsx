@@ -1,12 +1,15 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import NewsResearch from "@/components/info/NewsResearch";
 import NewsDetail from "@/components/info/NewsDetail";
 
-export default function InfoNewsPage() {
-  const searchParams = useSearchParams();
-  const url = searchParams.get('url');
+interface PageProps {
+  searchParams: { page?: string; url?: string } | null;
+}
+
+export default function InfoNewsPage({ searchParams }: PageProps) {
+  const page = searchParams?.page ?? '1';
+  const url = searchParams?.url ?? undefined;
 
   if (url) {
     return (

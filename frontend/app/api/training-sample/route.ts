@@ -24,10 +24,10 @@ export async function POST(req: Request) {
     const db = drizzle(sql)
 
     await db.insert(trainingSamples).values({
-      sessionId,
+      sessionId: Number.isNaN(parseInt(sessionId, 10)) ? 0 : parseInt(sessionId, 10),
       userEmail,
       userName,
-      questionId,
+      questionId: Number.isNaN(parseInt(questionId, 10)) ? 0 : parseInt(questionId, 10),
       questionText,
       audioFilename,
       audioUrl,

@@ -16,7 +16,9 @@ import {
   Clock
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { researchPapers, filterOptions, type ResearchPaper } from "@/lib/research-papers";
+import { researchPapers, type ResearchPaper } from "@/lib/research-papers";
+
+type FilterType = 'all' | 'recent' | 'popular'
 
 type LiveItem = {
   id: string;
@@ -41,15 +43,15 @@ export default function NewsResearch() {
 
     // Filter by category
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(paper => paper.category === selectedCategory);
+      filtered = filtered.filter((paper: ResearchPaper) => (paper as any).category === selectedCategory);
     }
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(paper =>
+      filtered = filtered.filter((paper: ResearchPaper) =>
         paper.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         paper.abstract.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        paper.authors.some(author => author.toLowerCase().includes(searchTerm.toLowerCase()))
+        paper.authors.some((author: string) => author.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -167,12 +169,12 @@ export default function NewsResearch() {
               {/* Category Filters */}
               <div className="flex flex-wrap gap-2">
                 <Filter className="w-4 h-4 text-gray-400 mr-2 self-center" />
-                {filterOptions.map((filter) => (
+                {([{ value: 'all', label: 'Tất cả' }, { value: 'research', label: 'Nghiên cứu' }, { value: 'technology', label: 'Công nghệ' }] as const).map((filter) => (
                   <Button
                     key={filter.value}
                     variant={selectedCategory === filter.value ? "default" : "secondaryOutline"}
                     size="sm"
-                    onClick={() => setSelectedCategory(filter.value)}
+                    onClick={() => setSelectedCategory(filter.value as string)}
                     className="text-xs"
                   >
                     {filter.label}

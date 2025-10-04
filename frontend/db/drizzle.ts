@@ -14,9 +14,10 @@ if (!databaseUrl.startsWith('postgresql://')) {
 }
 
 // Configure connection pooling for better performance
-// Note: fetchConnectionCache is now always true by default in newer versions
-neonConfig.poolSize = 10; // Connection pool size
-neonConfig.queueLimit = 100; // Queue limit for pending connections
+// Note: fetchConnectionCache is enabled by default in newer versions.
+// The following options are no longer supported and have been removed.
+// neonConfig.poolSize = 10;
+// neonConfig.queueLimit = 100;
 
 const sql = neon(databaseUrl);
 const db = drizzle(sql, { schema });

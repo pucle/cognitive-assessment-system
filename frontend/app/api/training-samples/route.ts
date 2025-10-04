@@ -30,8 +30,12 @@ export async function GET() {
           userId = 'demo-user';
           email = 'demo@example.com';
         }
-      } catch (authError) {
-        console.warn("Auth error, using demo mode:", authError.message);
+      } catch (authError: unknown) {
+        if (authError instanceof Error) {
+          console.warn("Auth error, using demo mode:", authError.message);
+        } else {
+          console.warn("Auth error, using demo mode");
+        }
         userId = 'demo-user';
         email = 'demo@example.com';
       }

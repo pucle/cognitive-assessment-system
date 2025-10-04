@@ -26,20 +26,17 @@ export async function GET(request: NextRequest) {
       const db = drizzleSQLite(sqlite);
 
       try {
-        let query = db.select()
-          .from(cognitiveAssessmentResults)
-          .orderBy(desc(cognitiveAssessmentResults.createdAt));
+        // Build conditions first to avoid chaining multiple .where() (which narrows types)
+        const conditions: any[] = [];
+        if (sessionId) conditions.push(eq(cognitiveAssessmentResults.sessionId, sessionId));
+        if (userId) conditions.push(eq(cognitiveAssessmentResults.userId, userId));
+        if (usageMode) conditions.push(eq(cognitiveAssessmentResults.usageMode, usageMode));
 
-        // Apply filters if provided - avoid circular references by building conditions properly
-        if (sessionId) {
-          query = query.where(eq(cognitiveAssessmentResults.sessionId, sessionId));
+        let query = db.select().from(cognitiveAssessmentResults);
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions));
         }
-        if (userId) {
-          query = query.where(eq(cognitiveAssessmentResults.userId, userId));
-        }
-        if (usageMode) {
-          query = query.where(eq(cognitiveAssessmentResults.usageMode, usageMode));
-        }
+        query = query.orderBy(desc(cognitiveAssessmentResults.createdAt));
 
         results = await query.limit(limit);
 
@@ -76,24 +73,21 @@ export async function GET(request: NextRequest) {
     } else {
       // PostgreSQL database
       console.log('🐘 Using PostgreSQL database');
-      const sql = neon(databaseUrl);
+      const neonClient = neon(databaseUrl);
       const { drizzle } = await import('drizzle-orm/neon-http');
-      const db = drizzle(sql);
+      const db = drizzle(neonClient);
 
-      let query = db.select()
-        .from(cognitiveAssessmentResults)
-        .orderBy(desc(cognitiveAssessmentResults.createdAt));
+      // Build conditions first to avoid chaining multiple .where() (which narrows types)
+      const conditions: any[] = [];
+      if (sessionId) conditions.push(eq(cognitiveAssessmentResults.sessionId, sessionId));
+      if (userId) conditions.push(eq(cognitiveAssessmentResults.userId, userId));
+      if (usageMode) conditions.push(eq(cognitiveAssessmentResults.usageMode, usageMode));
 
-      // Apply filters if provided - avoid circular references by building conditions properly
-      if (sessionId) {
-        query = query.where(eq(cognitiveAssessmentResults.sessionId, sessionId));
+      let query = db.select().from(cognitiveAssessmentResults);
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
       }
-      if (userId) {
-        query = query.where(eq(cognitiveAssessmentResults.userId, userId));
-      }
-      if (usageMode) {
-        query = query.where(eq(cognitiveAssessmentResults.usageMode, usageMode));
-      }
+      query = query.orderBy(desc(cognitiveAssessmentResults.createdAt));
 
       results = await query.limit(limit);
 

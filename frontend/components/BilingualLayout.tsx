@@ -20,11 +20,13 @@ export function BilingualLayout({ children }: BilingualLayoutProps) {
       }
 
       // Update document title based on language
-      const titles = {
+      interface BilingualTexts { vi: string; en: string }
+      const titles: BilingualTexts = {
         vi: "Cá Vàng - Đánh giá Nhận thức",
         en: "Cá Vàng - Cognitive Assessment System"
       };
-      document.title = titles[language || 'vi'] || titles.vi;
+      const currentLang = (language || 'vi') as keyof BilingualTexts
+      document.title = titles[currentLang];
     }
   }, [language]);
 

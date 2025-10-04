@@ -22,7 +22,6 @@ lime>=0.2.0
 python-dotenv>=1.0.0
 
 # Database
-drizzle-orm>=0.0.0
 pg>=0.0.0
 
 # Optional Vietnamese processing
