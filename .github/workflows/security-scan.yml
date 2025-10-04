@@ -352,13 +352,12 @@ jobs:
 
       # Send notification for failed scans
       - name: Notify on security failures
-        if: failure() && env.SLACK_WEBHOOK_URL != ''
-        uses: 8398a7/action-slack@v3
-        with:
-          status: failure
-          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          title: 'Security Scan Failed'
-          text: 'Security vulnerabilities detected. Check the Security tab and artifacts.'
+        if: ${{ failure() && secrets.SLACK_WEBHOOK_URL != '' }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_MESSAGE: 'Security vulnerabilities detected. Check the Security tab and artifacts.'
+          SLACK_TITLE: 'Security Scan Failed'
 
 # ================================
 # Required Secrets

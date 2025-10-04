@@ -282,26 +282,23 @@ jobs:
 
       # Performance check
       - name: Performance check
+        shell: bash
+        env:
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
         run: |
           python - <<'PY'
-import os, subprocess
-import urllib.request, time
+import os, urllib.request, time, sys
 url = os.environ['BACKEND_URL'].rstrip('/') + '/api/health'
 t0 = time.time()
 try:
     with urllib.request.urlopen(url, timeout=10) as r:
         r.read()
-    dt = time.time()-t0
-    if dt > 2.0:
-        print(f"Warning: slow response {dt:.2f}s")
-    else:
-        print(f"OK: response {dt:.2f}s")
-except Exception as e:
-    print(f"Error: {e}")
-    raise SystemExit(1)
+    dt = time.time() - t0
+    print(f"OK: response {dt:.2f}s" if dt <= 2.0 else f"Warning: slow response {dt:.2f}s")
+except Exception as exc:
+    print(f"Error: {exc}")
+    sys.exit(1)
 PY
-        env:
-          BACKEND_URL: ${{ secrets.BACKEND_URL }}
 
   # ================================
   # Notification Job
