@@ -65,6 +65,9 @@ jobs:
         with:
           fetch-depth: 0
           submodules: false
+        with:
+          fetch-depth: 0
+          submodules: false
 
       # Setup Node.js for frontend testing
       - name: Setup Node.js
@@ -116,6 +119,10 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
 
+      - name: Create root role (compat)
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d test_db -v ON_ERROR_STOP=1 -c "DO $$BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='root') THEN CREATE ROLE root WITH LOGIN SUPERUSER PASSWORD 'postgres'; END IF; END$$;"
+
       # Build checks
       - name: Build frontend
         run: |
@@ -158,6 +165,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       # Check for secrets in code
       - name: Check for secrets
