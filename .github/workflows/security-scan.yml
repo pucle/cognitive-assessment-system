@@ -90,7 +90,8 @@ jobs:
       - name: Lint (if available)
         run: |
           cd frontend
-          if npm pkg get scripts.lint >/dev/null 2>&1; then
+          LINT_VAL=$(npm pkg get scripts.lint 2>/dev/null | tr -d ' \n"')
+          if [ -n "$LINT_VAL" ] && [ "$LINT_VAL" != "undefined" ]; then
             npm run lint || true
           else
             echo "No lint script found, skipping"
